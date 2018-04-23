@@ -2,14 +2,14 @@
 define(function(require) {
   var Backbone = require('backbone');
   var Origin = require('core/origin');
-  var SysadminView = require('plugins/sysadmin/views/sysadminPluginView');
+  var OriginView = require('core/views/originView');
   var ContentCollection = require('core/collections/contentCollection');
   var TagCollection = Backbone.Collection.extend({ url: '/api/content/tag' });
 
   var TAG_PREFIX = 'test-'
 
-  var TagMapView = SysadminView.extend({
-    name: 'tagmap',
+  var TagMapView = OriginView.extend({
+    className: 'tagmap',
     settings: {
       autoRender: false
     },
@@ -19,7 +19,7 @@ define(function(require) {
         tags: new TagCollection(),
         courses: new ContentCollection(null, { _type: 'course' })
       });
-      SysadminView.prototype.initialize.apply(this, arguments);
+      OriginView.prototype.initialize.apply(this, arguments);
     },
 
     preRender: function() {
