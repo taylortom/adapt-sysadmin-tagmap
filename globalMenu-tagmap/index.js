@@ -2,7 +2,6 @@
 define(function(require) {
   var Origin = require('core/origin');
   var TagMapView = require('./views/tagMapView');
-  var TagMapSidebarView = require('./views/tagMapSidebarView');
 
   Origin.on('origin:dataReady login:changed', function() {
     Origin.globalMenu.addItem({
@@ -19,7 +18,8 @@ define(function(require) {
   });
 
   Origin.on('router:tagmap', function(location, subLocation, action) {
+    Origin.trigger('sidebar:sidebarContainer:hide');
+    Origin.trigger('location:title:update', { title: Origin.l10n.t('app.tagmap') });
     Origin.contentPane.setView(TagMapView);
-    Origin.sidebar.addView(new TagMapSidebarView().$el);
   });
 });
