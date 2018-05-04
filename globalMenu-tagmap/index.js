@@ -22,4 +22,11 @@ define(function(require) {
     Origin.trigger('location:title:update', { title: Origin.l10n.t('app.tagmap') });
     Origin.contentPane.setView(TagMapView);
   });
+
+  Handlebars.registerHelper('tagFilterStatus', function(type, model) {
+    if(model.currentSort !== type) {
+      return;
+    }
+    return new Handlebars.SafeString('<i class="fa fa-sort-' + (model.isReverseSort ? 'down' : 'up') + '"/>');
+  });
 });

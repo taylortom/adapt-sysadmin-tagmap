@@ -1,20 +1,41 @@
+<!-- <div class="filters">
+  Filters
+</div> -->
 <div class="inner">
   {{#if projectTags.length}}
     <div class="header col-row tb-row">
-      <div class="col-40">{{t 'app.project'}}</div>
-      <div class="col-15">{{t 'app.id'}}</div>
-      <div class="col-45">{{t 'app.title'}}</div>
+      <div class="col-10">
+        <button class="sort" data-id="module">
+          {{t 'app.id'}}
+          {{tagFilterStatus 'module' this}}
+        </button>
+      </div>
+      <div class="col-40">
+        <button class="sort" data-id="title">
+          {{t 'app.title'}}
+          {{tagFilterStatus 'title' this}}
+        </button>
+      </div>
+      <div class="col-20">
+        <button class="sort" data-id="date">
+          {{t 'app.updatedat'}}
+          {{tagFilterStatus 'date' this}}
+        </button>
+      </div>
+      <div class="col-30">
+        <button class="sort" data-id="project">
+          {{t 'app.project'}}
+          {{tagFilterStatus 'project' this}}
+        </button>
+      </div>
     </div>
-    <div class="projects">
-      {{#each projectTags}}
-        <div class="project col-row tb-row" data-id="{{attributes._id}}">
+    <div class="courses">
+      {{#each courses.models}}
+        <div class="course col-row tb-row" data-id="{{attributes._id}}">
+          <div class="col-10">{{attributes.moduleTag.title}}</div>
           <div class="col-40">{{attributes.title}}</div>
-            <div class="col-60">
-              {{#each attributes.courses}}
-                <div class="col-25">{{this.attributes.moduleTag.title}}</div>
-                <div class="col-75">{{this.attributes.title}}</div>
-              {{/each}}
-          </div>
+          <div class="col-20">{{momentFormat attributes.updatedAt 'DD/MM/YY, h:mm:ss a'}}</div>
+          <div class="col-30">{{attributes.projectTag.title}}</div>
         </div>
       {{/each}}
     </div>

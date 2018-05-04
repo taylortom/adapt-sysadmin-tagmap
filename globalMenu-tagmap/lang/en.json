@@ -2,6 +2,6 @@
   "app.tagmap": "Tag reference",
   "app.notagsmap": "No ID tags have been added.",
   "app.project": "Project",
-  "app.id": "ID"
-
+  "app.id": "ID",
+  "app.updatedat": "Last updated"
 }
