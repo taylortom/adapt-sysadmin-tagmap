@@ -1,6 +1,17 @@
-<!-- <div class="filters">
-  Filters
-</div> -->
+<div class="filters hidden">
+  <div class="title">{{t 'app.filters'}}</div>
+  <div class="description">{{t 'app.filtersdesc'}}</div>
+  {{#if projectTags.length}}
+    <div class="filter">
+      <div class="title">{{t 'app.project'}}</div>
+      <div class="tags">
+        {{#each projectTags}}
+          <button class="tag {{#ifValueEquals ../tagFilter attributes._id}}selected{{/ifValueEquals}}" data-id="{{attributes._id}}">{{attributes.title}}</button>
+        {{/each}}
+      </div>
+    </div>
+  {{/if}}
+</div>
 <div class="inner">
   {{#if projectTags.length}}
     <div class="header col-row tb-row">
@@ -31,12 +42,13 @@
     </div>
     <div class="courses">
       {{#each courses.models}}
-        <div class="course col-row tb-row" data-id="{{attributes._id}}">
-          <div class="col-10">{{attributes.moduleTag.title}}</div>
-          <div class="col-40">{{attributes.title}}</div>
-          <div class="col-20">{{momentFormat attributes.updatedAt 'DD/MM/YY, h:mm:ss a'}}</div>
-          <div class="col-30">{{attributes.projectTag.title}}</div>
-        </div>
+        {{#if ../tagFilter}}
+          {{#ifValueEquals ../../tagFilter attributes.projectTag._id}}
+            {{> part_tagMapCourse attributes}}
+          {{/ifValueEquals}}
+        {{else}}
+          {{> part_tagMapCourse attributes}}
+        {{/if}}
       {{/each}}
     </div>
   {{else}}

@@ -14,7 +14,8 @@ define(function(require) {
       autoRender: false
     },
     events: {
-      'click button.sort': 'onSortClicked'
+      'click button.sort': 'onSortClicked',
+      'click button.tag': 'onTagClicked'
     },
     sorts: {
       date: {
@@ -57,6 +58,7 @@ define(function(require) {
         courses: new ContentCollection(null, { _type: 'course' }),
         currentSort: 'module'
       });
+      this.listenTo(Origin, 'tagmap:filter', this.onFilterClicked);
       OriginView.prototype.initialize.apply(this, arguments);
     },
 
@@ -126,10 +128,6 @@ define(function(require) {
       return ret;
     },
 
-    onSortClicked: function(event) {
-      this.doSort($(event.currentTarget).attr('data-id'));
-    },
-
     doSort: function(type) {
       this.model.get('courses').comparator = this.getSortFunction(type);
       this.model.get('courses').sort();
@@ -146,7 +144,21 @@ define(function(require) {
     isReverseSort: function() {
       var sort = this.sorts[this.model.get('currentSort')];
       return this.model.get('courses').comparator === sort.reverse;
-    }
+    },
+
+    onFilterClicked: function(event) {
+      this.$('.filters').toggleClass('hidden');
+    },
+
+    onSortClicked: function(event) {
+      this.doSort($(event.currentTarget).attr('data-id'));
+    },
+
+    onTagClicked: function(event) {
+      var filter = $(event.currentTarget).attr('data-id');
+      this.model.set('tagFilter', (filter === this.model.get('tagFilter')) ? '' : filter);
+      this.render();
+    },
   }, { template: 'tagMap' });
 
   return TagMapView;

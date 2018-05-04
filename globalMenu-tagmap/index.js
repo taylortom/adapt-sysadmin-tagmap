@@ -20,6 +20,11 @@ define(function(require) {
   Origin.on('router:tagmap', function(location, subLocation, action) {
     Origin.trigger('sidebar:sidebarContainer:hide');
     Origin.trigger('location:title:update', { title: Origin.l10n.t('app.tagmap') });
+    Origin.options.addItems([{
+      title: Origin.l10n.t('app.filter'),
+      icon: 'filter',
+      callbackEvent: 'tagmap:filter'
+    }]);
     Origin.contentPane.setView(TagMapView);
   });
 
