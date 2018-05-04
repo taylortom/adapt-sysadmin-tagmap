@@ -29,9 +29,7 @@ define(function(require) {
   });
 
   Handlebars.registerHelper('tagFilterStatus', function(type, model) {
-    if(model.currentSort !== type) {
-      return;
-    }
+    if(model.currentSort !== type) return;
     return new Handlebars.SafeString('<i class="fa fa-sort-' + (model.isReverseSort ? 'down' : 'up') + '"/>');
   });
 });
