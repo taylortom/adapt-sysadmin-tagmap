@@ -25,6 +25,11 @@
     .course {
       padding: 10px;
       border-bottom: 1px solid #e4e4e4;
+      > div {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
       &:last-child {
         border-bottom: none;
       }
