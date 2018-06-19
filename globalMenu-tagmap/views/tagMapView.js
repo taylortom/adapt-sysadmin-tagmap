@@ -22,34 +22,40 @@ define(function(require) {
         regular: function(a, b) {
           return new Date(a.get('updatedAt')) < new Date(b.get('updatedAt'));
         },
-        reverse: function(a, b) { return this.comparators.date.regular(a, b) * -1; }
+        reverse: function(a, b) {
+          return new Date(a.get('updatedAt')) > new Date(b.get('updatedAt'));
+        }
       },
       module: {
         regular: function(a, b) {
           return a.get('moduleTag').title.localeCompare(b.get('moduleTag').title);
         },
-        reverse: function(a, b) { return this.comparators.module.regular(a, b) * -1; }
+        reverse: function(a, b) {
+          return b.get('moduleTag').title.localeCompare(a.get('moduleTag').title);
+        }
       },
       project: {
         regular: function(a, b) {
-          return a.get('projectTag').title.localeCompare(b.get('projectTag').title);
+          return a.get('projectTag').title > b.get('projectTag').title;
         },
-        reverse: function(a, b) { return this.comparators.project.regular(a, b) * -1; }
+        reverse: function(a, b) {
+          return b.get('projectTag').title.localeCompare(a.get('projectTag').title);
+        }
       },
       title: {
         regular: function(a, b) {
           return a.get('title').localeCompare(b.get('title'));
         },
-        reverse: function(a, b) { return this.comparators.title.regular(a, b) * -1; }
+        reverse: function(a, b) {
+          return b.get('title').localeCompare(a.get('title'));
+        }
       }
     },
 
     initialize: function(options) {
-      var courses = new ContentCollection(null, { _type: 'course' });
-      courses.comparators = this.sorts;
       this.model = new Backbone.Model({
         tags: new TagCollection(),
-        courses: courses,
+        courses: new ContentCollection(null, { _type: 'course' }),
         currentSort: 'module'
       });
       this.listenTo(Origin, 'tagmap:filter', this.onFilterClicked);
@@ -59,8 +65,7 @@ define(function(require) {
     preRender: function() {
       this.fetchTags(function() {
         this.fetchCourses(function() {
-          // FIXME don't do this twice
-          this.doSort('module');
+          this.filterCourses();
           this.doSort('module');
         });
       });
@@ -86,11 +91,6 @@ define(function(require) {
 
     fetchCourses: function(cb) {
       this.model.get('courses').fetch({
-        data: {
-          $or: this.model.get('tags').map(function(tag) {
-            return { tags: tag.get('_id') };
-          })
-        },
         success: _.bind(function(courses) {
           this.processCourses(courses);
           cb.apply(this);
@@ -114,6 +114,20 @@ define(function(require) {
       }, this);
     },
 
+    filterCourses: function() {
+      var allTagIds = this.getTagIds();
+      // only want matching courses
+      var filtered = this.model.get('courses').filter(_.bind(function(course) {
+        var courseTagIds = course.get('tags').map(function(tag) {
+          return tag._id;
+        });
+        return _.intersection(courseTagIds, allTagIds).length > 0;
+      }, this));
+      this.model.set('courses', new Backbone.Collection(filtered));
+
+      this.doSort('module');
+    },
+
     doesCourseHaveTag: function(course, tag) {
       var ret = false;
       course.get('tags').forEach(function(courseTag) {
@@ -130,13 +144,19 @@ define(function(require) {
     },
 
     getSortFunction: function(type) {
-      var sort = this.model.get('courses').comparators[type];
+      var sort = this.sorts[type];
       var shouldReverse = this.model.get('currentSort') === type && !this.isReverseSort();
       return shouldReverse ? sort.reverse : sort.regular;
     },
 
+    getTagIds: function() {
+      return this.model.get('tags').map(function(tag) {
+        return tag.get('_id');
+      });
+    },
+
     isReverseSort: function() {
-      var sort = this.model.get('courses').comparators[this.model.get('currentSort')];
+      var sort = this.sorts[this.model.get('currentSort')];
       return this.model.get('courses').comparator === sort.reverse;
     },
 
@@ -152,7 +172,7 @@ define(function(require) {
       var filter = $(event.currentTarget).attr('data-id');
       this.model.set('tagFilter', (filter === this.model.get('tagFilter')) ? '' : filter);
       this.render();
-    },
+    }
   }, { template: 'tagMap' });
 
   return TagMapView;
