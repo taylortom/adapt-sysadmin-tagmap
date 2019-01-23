@@ -6,8 +6,6 @@ define(function(require) {
   var ContentCollection = require('core/collections/contentCollection');
   var TagCollection = Backbone.Collection.extend({ url: '/api/content/tag' });
 
-  var TAG_PREFIX = '(p|m)-';
-
   var TagMapView = OriginView.extend({
     className: 'tagmap',
     settings: {
@@ -54,8 +52,7 @@ define(function(require) {
 
     initialize: function(options) {
       this.model = new Backbone.Model({
-        tags: new TagCollection(),
-        courses: new ContentCollection(null, { _type: 'course' }),
+        courses: new Backbone.Collection(),
         currentSort: 'module'
       });
       this.listenTo(Origin, 'tagmap:filter', this.onFilterClicked);
@@ -63,59 +60,26 @@ define(function(require) {
     },
 
     preRender: function() {
-      this.fetchTags(function() {
-        this.fetchCourses(function() {
-          this.filterCourses();
-          this.doSort('module');
+      this.fetchData(function() {
+        this.filterCourses();
+        this.doSort('module');
+      });
+    },
+
+    fetchData: function(cb) {
+      $.get('api/tagmap', function(data) {
+        this.model.get('courses').add(data);
+        (new TagCollection()).fetch({
+          success: function(tags) {
+            this.model.set('tagIds', tags.map(function(tag) { return tag.get('_id'); }));
+            cb.call(this);
+          }.bind(this)
         });
-      });
-    },
-
-    fetchTags: function(cb) {
-      this.model.get('tags').fetch({
-        data: { title: { $regex: '^' + TAG_PREFIX } },
-        success: _.bind(function(tags) {
-          this.processTags(tags);
-          cb.apply(this);
-        }, this)
-      });
-    },
-
-    processTags: function(tags) {
-      var m = [], p = [];
-      tags.each(function(tag) {
-        (tag.get('title')[0] === 'p') ? p.push(tag) : m.push(tag);
-      });
-      this.model.set({ moduleTags: m, projectTags: p });
-    },
-
-    fetchCourses: function(cb) {
-      this.model.get('courses').fetch({
-        success: _.bind(function(courses) {
-          this.processCourses(courses);
-          cb.apply(this);
-        }, this)
-      });
-    },
-
-    processCourses: function(courses) {
-      courses.each(function(course) {
-        var pTag, mTag;
-        course.get('tags').forEach(function(tag) {
-          if(pTag && mTag) return;
-          this.model.get('projectTags').forEach(function(projectTag) {
-            if(projectTag.get('_id') === tag._id) return pTag = tag;
-          }, this);
-          this.model.get('moduleTags').forEach(function(moduleTag) {
-            if(moduleTag.get('_id') === tag._id) return mTag = tag;
-          }, this);
-        }, this);
-        course.set({ projectTag: pTag, moduleTag: mTag });
-      }, this);
+      }.bind(this));
     },
 
     filterCourses: function() {
-      var allTagIds = this.getTagIds();
+      var allTagIds = this.model.get('tagIds');
       // only want matching courses
       var filtered = this.model.get('courses').filter(_.bind(function(course) {
         var courseTagIds = course.get('tags').map(function(tag) {
@@ -147,12 +111,6 @@ define(function(require) {
       var sort = this.sorts[type];
       var shouldReverse = this.model.get('currentSort') === type && !this.isReverseSort();
       return shouldReverse ? sort.reverse : sort.regular;
-    },
-
-    getTagIds: function() {
-      return this.model.get('tags').map(function(tag) {
-        return tag.get('_id');
-      });
     },
 
     isReverseSort: function() {
