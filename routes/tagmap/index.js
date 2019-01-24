@@ -5,8 +5,8 @@ const express = require('express');
 const app = require('../../lib/application')();
 const server = express();
 
-const PROJECT_PREFIX = app.configuration.getConfig('tagsProjectPrefix') || 'x-';
-const MODULE_PREFIX = app.configuration.getConfig('tagsModulePrefix') || 'y-';
+const PROJECT_PREFIX = '^' + app.configuration.getConfig('tagsProjectPrefix') || 'p-';
+const MODULE_PREFIX = '^' + app.configuration.getConfig('tagsModulePrefix') || 'm-';
 
 server.get('/api/tagmap', (req, res, next) => {
   getTagMap()
@@ -18,40 +18,23 @@ server.get('/api/tagmap', (req, res, next) => {
 });
 
 function getTagMap() {
-  const map = {};
-
   return new Promise((resolve, reject) => {
-    Promise.all([getCourses(), getTags()]).then(data => {
-      const courses = data[0];
-      const projectTags = data[1].project;
-      const moduleTags = data[1].module;
-
-      courses.forEach(course => {
+    getCourses().then(courses => {
+      for(let i = 0, count = courses.length; i < count; i++) {
+        const course = courses[i];
         if(!course.tags.length) {
-          return;
+          continue;
         }
-        let gotProject = gotModule = false;
-
-        course.tags.forEach(tag => {
-          if(gotProject && gotModule) {
-            console.log(course);
-            return;
+        for(let j = 0, count2 = course.tags.length; j < count2; j++) {
+          const tag = course.tags[j];
+          if(!course.projectTag && tag.title.match(PROJECT_PREFIX)) {
+            course.projectTag = tag;
+          } else if(!course.moduleTag && tag.title.match(MODULE_PREFIX)) {
+            course.moduleTag = tag;
           }
-          projectTags.forEach(pTag => {
-            if(pTag.get('_id').toString() === tag._id.toString()) {
-              course.projectTag = pTag;
-              return
-            }
-          });
-          moduleTags.forEach(mTag => {
-            if(mTag.get('_id').toString() === tag._id.toString()) {
-              course.moduleTag = mTag;
-              return
-            }
-          });
-        });
-        resolve(courses);
-      });
+        }
+      }
+      resolve(courses);
     }).catch(reject);
   });
 }
@@ -61,23 +44,6 @@ function getCourses() {
     app.db.retrieve('course', {}, { populate: { tags: '_id title' } }, (error, courses) => {
       if(error) return reject(error);
       resolve(courses);
-    });
-  });
-}
-
-function getTags() {
-  return new Promise((resolve, reject) => {
-    app.contentmanager.getContentPlugin('tag', (error, plugin) => {
-      if(error) {
-        return reject(error);
-      }
-      async.parallel([
-        cb => plugin.retrieve({ title: { $regex: `^${PROJECT_PREFIX}` } }, (error, tags) => cb(error, tags)),
-        cb => plugin.retrieve({ title: { $regex: `^${MODULE_PREFIX}` } }, (error, tags) => cb(error, tags))
-      ], (error, results) => {
-        if(error) return reject(error);
-        resolve({ project: results[0], module: results[1] });
-      });
     });
   });
 }
