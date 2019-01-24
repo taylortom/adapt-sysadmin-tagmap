@@ -18,10 +18,14 @@ define(function(require) {
     sorts: {
       date: {
         regular: function(a, b) {
-          return new Date(a.get('updatedAt')) < new Date(b.get('updatedAt'));
+          var aDate = new Date(a.get('updatedAt'));
+          var bDate = new Date(b.get('updatedAt'));
+          return aDate > bDate ? 1 : bDate > aDate ? -1 : 0;
         },
         reverse: function(a, b) {
-          return new Date(a.get('updatedAt')) > new Date(b.get('updatedAt'));
+          var aDate = new Date(a.get('updatedAt'));
+          var bDate = new Date(b.get('updatedAt'));
+          return aDate < bDate ? 1 : bDate < aDate ? -1 : 0;
         }
       },
       module: {
@@ -34,7 +38,7 @@ define(function(require) {
       },
       project: {
         regular: function(a, b) {
-          return a.get('projectTag').title > b.get('projectTag').title;
+          return a.get('projectTag').title.localeCompare(b.get('projectTag').title);
         },
         reverse: function(a, b) {
           return b.get('projectTag').title.localeCompare(a.get('projectTag').title);
@@ -68,10 +72,13 @@ define(function(require) {
 
     fetchData: function(cb) {
       $.get('api/tagmap', function(data) {
-        this.model.get('courses').add(data);
+        this.model.get('courses').add(data.courses);
         (new TagCollection()).fetch({
           success: function(tags) {
-            this.model.set('tagIds', tags.map(function(tag) { return tag.get('_id'); }));
+            this.model.set({
+              tagIds: tags.map(function(tag) { return tag.get('_id'); }),
+              projectTags: data.tags
+            });
             cb.call(this);
           }.bind(this)
         });
