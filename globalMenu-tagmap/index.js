@@ -23,7 +23,8 @@ define(function(require) {
     Origin.options.addItems([{
       title: Origin.l10n.t('app.filter'),
       icon: 'filter',
-      callbackEvent: 'tagmap:filter'
+      callbackEvent: 'tagmap:filter',
+      group: 'tags'
     }]);
     Origin.contentPane.setView(TagMapView);
   });
