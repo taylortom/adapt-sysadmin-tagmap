@@ -56,6 +56,7 @@ define(function(require) {
 
     initialize: function(options) {
       this.model = new Backbone.Model({
+        allCourses: new Backbone.Collection(),
         courses: new Backbone.Collection(),
         currentSort: 'module'
       });
@@ -72,6 +73,7 @@ define(function(require) {
 
     fetchData: function(cb) {
       $.get('api/tagmap', function(data) {
+        this.model.get('allCourses').add(data.courses);
         this.model.get('courses').add(data.courses);
         (new TagCollection()).fetch({
           success: function(tags) {
@@ -88,7 +90,7 @@ define(function(require) {
     filterCourses: function() {
       var allTagIds = this.model.get('tagIds');
       // only want matching courses
-      var filtered = this.model.get('courses').filter(_.bind(function(course) {
+      var filtered = this.model.get('allCourses').filter(_.bind(function(course) {
         var courseTagIds = course.get('tags').map(function(tag) {
           return tag._id;
         });
