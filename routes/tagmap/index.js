@@ -47,7 +47,6 @@ function getTagMap() {
 
 function getCourses() {
   return new Promise((resolve, reject) => {
-    return resolve(require('./courses.json'));
     app.db.retrieve('course', { _isShared: true }, { populate: { tags: '_id title' }, jsonOnly: true }, (error, courses) => {
       if(error) return reject(error);
       resolve(courses);
@@ -57,7 +56,6 @@ function getCourses() {
 
 function getTags() {
   return new Promise((resolve, reject) => {
-    return resolve(require('./tags.json'));
     app.db.retrieve('tag', { title: { $regex: PROJECT_PREFIX } }, { jsonOnly: true }, (error, tags) => {
       if(error) return reject(error);
       resolve(tags);
