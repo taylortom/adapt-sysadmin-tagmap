@@ -6,7 +6,7 @@
       <div class="title">{{t 'app.project'}}</div>
       <div class="tags">
         {{#each projectTags}}
-          <button class="tag {{#ifValueEquals ../tagFilter attributes._id}}selected{{/ifValueEquals}}" data-id="{{attributes._id}}">{{attributes.title}}</button>
+          <button class="tag {{#ifValueEquals ../tagFilter _id}}selected{{/ifValueEquals}}" data-id="{{_id}}">{{title}}</button>
         {{/each}}
       </div>
     </div>
@@ -43,7 +43,7 @@
     <div class="courses">
       {{#each courses.models}}
         {{#if ../tagFilter}}
-          {{#ifValueEquals ../../tagFilter attributes.projectTag._id}}
+          {{#ifValueEquals ../tagFilter attributes.projectTag._id}}
             {{> part_tagMapCourse attributes}}
           {{/ifValueEquals}}
         {{else}}
